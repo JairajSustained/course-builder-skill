@@ -1,0 +1,1208 @@
+<title>__COURSE_TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a workbook. Syllabus home -> module screens. One screen = one idea.
+   Learn-and-do screens: text and instructions (left), code and console (right). */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --sunken: #eceff3;
+  --ink: #18202c;
+  --muted: #586274;
+  --line: #d9dee6;
+  --accent: #3546b8;
+  --accent-soft: #e4e8fb;
+  --accent-ink: #ffffff;
+  --marker: #f3c84b;
+  --marker-soft: #fdf3d2;
+  --ok: #1d7a4f;
+  --ok-soft: #e1f3ea;
+  --bad: #b02a22;
+  --bad-soft: #fbe6e4;
+  --code-bg: #f0f2f6;
+  --syn-kw: #7a2ea8; --syn-str: #1d6f42; --syn-num: #a34100; --syn-com: #5d6678; --syn-def: #2a47a8; --syn-bi: #0b6e7a;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #191e27; --sunken: #0e1117; --ink: #e5e8ee; --muted: #9aa3b4;
+    --line: #2b3240; --accent: #93a2ff; --accent-soft: #232a4a; --accent-ink: #0f1220;
+    --marker: #e2b53e; --marker-soft: #3a3220; --ok: #52c48e; --ok-soft: #173326;
+    --bad: #ff8b80; --bad-soft: #3d1f1d; --code-bg: #0e1117; color-scheme: dark;
+    --syn-kw: #c4a3ff; --syn-str: #7fd6a4; --syn-num: #ffb072; --syn-com: #8993a6; --syn-def: #9db2ff; --syn-bi: #6fd3df;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #191e27; --sunken: #0e1117; --ink: #e5e8ee; --muted: #9aa3b4;
+  --line: #2b3240; --accent: #93a2ff; --accent-soft: #232a4a; --accent-ink: #0f1220;
+  --marker: #e2b53e; --marker-soft: #3a3220; --ok: #52c48e; --ok-soft: #173326;
+  --bad: #ff8b80; --bad-soft: #3d1f1d; --code-bg: #0e1117; color-scheme: dark;
+  --syn-kw: #c4a3ff; --syn-str: #7fd6a4; --syn-num: #ffb072; --syn-com: #8993a6; --syn-def: #9db2ff; --syn-bi: #6fd3df;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-display); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+a { color: var(--accent); }
+button { font: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.15; margin: 0; }
+.wrap { max-width: 1320px; margin: 0 auto; }
+
+/* Top bar */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topbar-inner { max-width: 1320px; margin: 0 auto; display: flex; gap: 16px; align-items: center; min-height: 52px; flex-wrap: wrap; padding-block: 6px; }
+.brand { font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 46ch; }
+.crumb { color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 160px; }
+.pystatus { font-family: var(--font-mono); font-size: 12px; padding: 3px 8px; border-radius: 999px; background: var(--sunken); color: var(--muted); white-space: nowrap; }
+.pystatus[data-state="ready"] { background: var(--ok-soft); color: var(--ok); }
+.pystatus[data-state="error"] { background: var(--bad-soft); color: var(--bad); }
+.meter { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meter-bar { width: 96px; height: 6px; border-radius: 3px; background: var(--sunken); overflow: hidden; }
+.meter-bar > i { display: block; height: 100%; background: var(--ok); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 14px; border-radius: var(--radius); cursor: pointer; font-weight: 500; text-decoration: none; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.08); border-color: var(--accent); }
+.btn-marker { background: var(--marker-soft); border-color: var(--marker); }
+.kbd { font-family: var(--font-mono); font-size: 11px; opacity: .75; }
+
+/* Home */
+.home { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; padding-block: 40px 24px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 760px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.hero h1 { font-size: clamp(32px, 5vw, 52px); letter-spacing: -0.025em; }
+.tagline { font-size: 19px; color: var(--muted); }
+.prose { font-family: var(--font-body); font-size: 17px; line-height: 1.65; max-width: 68ch; }
+.prose p { margin: 0 0 1em; }
+.prose h2, .prose h3 { font-family: var(--font-display); margin: 1.4em 0 .5em; }
+.prose code { font-family: var(--font-mono); font-size: .86em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.prose pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; line-height: 1.5; font-size: 14px; }
+.prose pre code { background: none; padding: 0; font-size: 13.5px; }
+.prose ul, .prose ol { padding-left: 1.3em; margin: 0 0 1em; }
+.prose li { margin-bottom: .3em; }
+.prose table { border-collapse: collapse; display: block; overflow-x: auto; font-size: 15px; margin-bottom: 1em; }
+.prose th, .prose td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+.prose blockquote { margin: 0 0 1em; padding: 8px 14px; border-left: 3px solid var(--marker); background: var(--marker-soft); }
+.facts { display: flex; flex-wrap: wrap; gap: 24px 40px; }
+.facts h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+.facts ul { margin: 0; padding-left: 1.1em; font-family: var(--font-body); font-size: 16px; max-width: 52ch; }
+.syllabus { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid var(--line); }
+.syl-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 16px; align-items: start; padding: 20px 0; border-bottom: 1px solid var(--line); }
+.syl-num { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 4px; font-variant-numeric: tabular-nums; }
+.syl-row h3 { font-size: 20px; letter-spacing: -0.01em; }
+.syl-row p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+.syl-meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+.syl-row details { margin-top: 8px; }
+.syl-row summary { cursor: pointer; color: var(--accent); font-size: 14px; }
+.syl-row details ul { margin: 6px 0 0; padding-left: 1.1em; font-family: var(--font-body); }
+.syl-side { display: grid; gap: 8px; justify-items: end; }
+.chip { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: var(--sunken); color: var(--muted); white-space: nowrap; }
+.chip-ok { background: var(--ok-soft); color: var(--ok); }
+.chip-proj { background: var(--marker-soft); color: var(--ink); }
+.chip-warn { background: var(--bad-soft); color: var(--bad); }
+@media (max-width: 640px) {
+  .syl-row { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .syl-side { justify-items: start; grid-auto-flow: column; justify-content: start; }
+  .crumb { display: none; }
+}
+
+/* Module stepper */
+.stepper { display: flex; gap: 4px; flex-wrap: wrap; padding-block: 16px 4px; }
+.step { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-family: var(--font-mono); font-size: 11px; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.step[data-type="learn"] { border-style: dashed; }
+.step[data-done="1"] { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); border-style: solid; }
+.step[aria-current="step"] { outline: 2px solid var(--accent); outline-offset: 1px; color: var(--ink); }
+
+/* Learn screen */
+.lesson { max-width: 760px; padding-block: 20px 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.lesson h1 { font-size: clamp(26px, 3.6vw, 36px); letter-spacing: -0.02em; }
+.prose { overflow-wrap: anywhere; }
+
+/* Learn-and-do / do screen */
+.bench { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; padding-block: 20px 8px; align-items: start; }
+@media (max-width: 920px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+.brief { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; }
+.brief h1 { font-size: 26px; letter-spacing: -0.015em; }
+.brief .prose { font-size: 16px; }
+.notice { font-size: 14px; padding: 10px 12px; border-radius: var(--radius); background: var(--bad-soft); color: var(--ink); border: 1px solid var(--bad); }
+.notice.notice-info { background: var(--accent-soft); border-color: var(--accent); }
+.instr { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius); background: var(--surface); padding: 12px 16px 4px; }
+.instr-head { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+.instr-title { font-size: 18px; margin-bottom: 8px; }
+.help { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.help-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.hints { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.hint { background: var(--marker-soft); border: 1px solid var(--marker); border-radius: var(--radius); padding: 10px 14px; }
+.hint .prose { font-size: 15px; }
+.hint-label { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 4px; }
+.confirm { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 10px; }
+.confirm p { margin: 0; }
+.confirm .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.solution { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--surface); padding: 12px 14px; display: grid; gap: 8px; }
+.solution pre { margin: 0; background: var(--code-bg); padding: 12px; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 13.5px; }
+.workbench { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 64px); }
+@media (max-width: 920px) { .workbench { position: static; } }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tab { border: 1px solid transparent; border-bottom: 0; background: transparent; color: var(--muted); padding: 7px 16px; border-radius: var(--radius) var(--radius) 0 0; cursor: pointer; font-weight: 600; margin-bottom: -1px; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.tabpanel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.tabpanel[hidden] { display: none; }
+.panel-note { font-size: 13px; color: var(--muted); }
+.editor { display: grid; grid-template-columns: auto minmax(0, 1fr); border: 1px solid var(--line); border-radius: var(--radius); background: var(--code-bg); overflow: hidden; height: min(46vh, 420px); min-height: 200px; min-width: 0; }
+.editor.is-cm { display: block; }
+.editor:focus-within { border-color: var(--accent); }
+.gutter { font-family: var(--font-mono); font-size: 13.5px; line-height: 1.6; color: var(--muted); text-align: right; padding: 12px 8px 12px 12px; user-select: none; overflow: hidden; white-space: pre; opacity: .7; }
+.code { font-family: var(--font-mono); font-size: 13.5px; line-height: 1.6; padding: 12px; border: 0; outline: none; resize: none; background: transparent; color: var(--ink); white-space: pre; overflow: auto; tab-size: 4; width: 100%; height: 100%; }
+.editor .CodeMirror { height: 100%; background: transparent; color: var(--ink); font-family: var(--font-mono); font-size: 13.5px; line-height: 1.6; }
+.editor .CodeMirror-gutters { background: transparent; border-right: 1px solid var(--line); }
+.editor .CodeMirror-linenumber { color: var(--muted); opacity: .8; }
+.editor .CodeMirror-cursor { border-left: 2px solid var(--ink); }
+.editor .CodeMirror-selected, .editor .CodeMirror-focused .CodeMirror-selected { background: var(--accent-soft); }
+.editor .CodeMirror-activeline-background { background: transparent; }
+.cm-s-cb .cm-keyword, .cm-s-cb .cm-atom, .cm-s-cb .cm-operator.cm-keyword { color: var(--syn-kw); }
+.cm-s-cb .cm-string, .cm-s-cb .cm-string-2 { color: var(--syn-str); }
+.cm-s-cb .cm-number { color: var(--syn-num); }
+.cm-s-cb .cm-comment { color: var(--syn-com); font-style: italic; }
+.cm-s-cb .cm-def, .cm-s-cb .cm-variable-2, .cm-s-cb .cm-meta { color: var(--syn-def); }
+.cm-s-cb .cm-builtin { color: var(--syn-bi); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.toolbar .spacer { flex: 1; }
+.console-head { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.output { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); min-height: 96px; min-width: 0; }
+.out-status { padding: 10px 14px; font-weight: 600; border-bottom: 1px solid var(--line); display: flex; gap: 8px; align-items: center; }
+.out-status[data-kind="pass"] { background: var(--ok-soft); color: var(--ok); }
+.out-status[data-kind="ran"] { background: var(--accent-soft); color: var(--ink); }
+.out-status[data-kind="fail"], .out-status[data-kind="error"] { background: var(--bad-soft); color: var(--bad); }
+.out-msg { padding: 10px 14px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 13px; }
+.out-note { padding: 0 14px 10px; font-size: 13px; color: var(--muted); }
+.out-printed { margin: 0 14px 12px; padding: 10px 12px; background: var(--code-bg); border-radius: 6px; font-family: var(--font-mono); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 220px; overflow: auto; }
+.out-label { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 14px 4px; }
+.attempts { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lock-note { margin: 0; font-size: 13px; color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+[tabindex="-1"]:focus { outline: none; }
+
+/* Quiz */
+.quiz { max-width: 760px; padding-block: 20px 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.quiz h1 { font-size: clamp(26px, 3.6vw, 36px); letter-spacing: -0.02em; }
+.q { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 16px 18px; margin: 0; min-width: 0; display: grid; gap: 12px; }
+.q legend { padding: 0 6px; font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.q .prose { font-size: 17px; }
+.opts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.opt { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; background: var(--bg); overflow-wrap: anywhere; }
+.opt:hover { border-color: var(--muted); }
+.opt:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opt input { margin-top: 3px; accent-color: var(--accent); }
+.opt[data-state="right"] { border-color: var(--ok); background: var(--ok-soft); }
+.q-fb { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.q-fb .verdict { font-weight: 600; }
+.q-fb[data-kind="ok"] .verdict { color: var(--ok); }
+.q-fb[data-kind="no"] .verdict { color: var(--bad); }
+.q-fb .prose { font-size: 15px; }
+
+/* Takeaways */
+.take { max-width: 760px; padding-block: 20px 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.take h1 { font-size: clamp(26px, 3.6vw, 36px); letter-spacing: -0.02em; }
+.cheat { margin: 0; padding: 16px 20px 16px 40px; border: 1px solid var(--line); border-left: 4px solid var(--marker); border-radius: var(--radius); background: var(--surface); font-family: var(--font-body); font-size: 17px; line-height: 1.55; }
+.cheat li { margin-bottom: .45em; overflow-wrap: anywhere; }
+.cheat code, .vid-why code { font-family: var(--font-mono); font-size: .86em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.watch-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.vid { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 14px; align-items: start; color: inherit; text-decoration: none; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: var(--surface); }
+.vid:hover { border-color: var(--muted); }
+.vid img { width: 160px; max-width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; background: var(--sunken); display: block; }
+.vid-title { font-weight: 600; overflow-wrap: anywhere; }
+.vid-meta { font-size: 13px; color: var(--muted); }
+.vid-why { font-size: 14px; margin-top: 4px; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .vid { grid-template-columns: minmax(0, 1fr); } .vid img { width: 100%; } }
+.watch { border: 1px dashed var(--line); border-radius: var(--radius); background: var(--surface); margin-top: 16px; }
+.watch > summary { cursor: pointer; padding: 10px 14px; font-weight: 500; }
+.watch > .watch-list { padding: 0 14px 14px; }
+h2.eyebrow { margin: 0; }
+
+/* Home extras, completion */
+.cont { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.cont-note { font-size: 14px; color: var(--muted); }
+.mini { width: 120px; height: 6px; border-radius: 3px; background: var(--sunken); overflow: hidden; }
+.mini > i { display: block; height: 100%; background: var(--ok); }
+.done-page { max-width: 760px; padding-block: 40px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+.done-page h1 { font-size: clamp(30px, 5vw, 46px); letter-spacing: -0.02em; }
+.counts { display: flex; gap: 12px; flex-wrap: wrap; }
+.count { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 12px 18px; min-width: 150px; }
+.count b { display: block; font-size: 28px; font-variant-numeric: tabular-nums; }
+.count span { font-size: 13px; color: var(--muted); }
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.checklist label { display: flex; gap: 10px; align-items: flex-start; font-family: var(--font-body); font-size: 17px; cursor: pointer; overflow-wrap: anywhere; }
+.checklist input { margin-top: 5px; accent-color: var(--accent); }
+
+/* Footer nav */
+.pager { display: flex; justify-content: space-between; gap: 12px; padding-block: 24px 0; border-top: 1px solid var(--line); margin-top: 24px; flex-wrap: wrap; }
+#pyerror { padding-block: 12px 0; }
+#pyerror .notice { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.selftest { font-family: var(--font-mono); font-size: 12px; white-space: pre-wrap; }
+@media (prefers-reduced-motion: no-preference) { .out-status { transition: background .2s; } }
+</style>
+
+<script id="course-data" type="application/json">__COURSE_JSON__</script>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" id="brand" href="#">Course</a>
+    <span class="crumb" id="crumb"></span>
+    <span class="pystatus" id="pystatus" data-state="idle" role="status">Python starting…</span>
+    <span class="meter" id="meter"><span class="meter-bar"><i id="meter-fill" style="width:0%"></i></span><span id="meter-text">0%</span></span>
+  </div>
+</header>
+<div class="sr-only" id="route-live" role="status" aria-live="polite"></div>
+<div class="wrap" id="pyerror" hidden></div>
+<main class="wrap" id="app"></main>
+
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("course-data").textContent);
+  var RT = DATA.runtime || {};
+  var SELFTEST = /[?&]selftest=1/.test(location.search);
+  var app = document.getElementById("app");
+
+  // ---------- storage (per-viewer convenience only) ----------
+  // The catalog page reads this same key. Keep the shape: state[id].passed.
+  // Several tabs can be open. A save reads the stored blob, merges only the
+  // records that this tab changed, and writes. Counts and flags only grow.
+  var KEY = "course:" + DATA.slug + ":v1";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+  var snap = {};   // JSON of each record as last read from or written to storage
+  Object.keys(state).forEach(function (k) { snap[k] = JSON.stringify(state[k]); });
+  function rec(id) {
+    if (!state[id]) state[id] = { attempts: 0, hints: 0, solution: false, passed: false, code: null, seen: false, subs: [] };
+    return state[id];
+  }
+  function qrec(id) {
+    if (!state[id]) state[id] = { tries: 0, passed: false, choice: null };
+    return state[id];
+  }
+  function isRec(v) { return !!v && typeof v === "object" && !Array.isArray(v); }
+  // Merge two records of one id. Numbers take the larger value, flags the OR, lists the union.
+  // The code and the quiz choice of "local" win.
+  function mergeRec(local, other) {
+    var out = {};
+    Object.keys(other).concat(Object.keys(local)).forEach(function (k) {
+      var a = local[k], b = other[k];
+      if (a === undefined || a === null) out[k] = b === undefined ? a : b;
+      else if (b === undefined || b === null || k === "code" || k === "choice") out[k] = a;
+      else if (typeof a === "number" && typeof b === "number") out[k] = Math.max(a, b);
+      else if (typeof a === "boolean" && typeof b === "boolean") out[k] = a || b;
+      else if (Array.isArray(a) && Array.isArray(b)) out[k] = a.concat(b.filter(function (x) { return a.indexOf(x) < 0; })).slice(-60);
+      else out[k] = a;
+    });
+    return out;
+  }
+  var saveTimer = null;
+  function flushSave() {
+    clearTimeout(saveTimer); saveTimer = null;
+    var changed = Object.keys(state).filter(function (k) { return JSON.stringify(state[k]) !== snap[k]; });
+    if (!changed.length) return;
+    var stored = {};
+    try { stored = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { stored = {}; }
+    changed.forEach(function (k) {
+      if (isRec(state[k]) && isRec(stored[k])) { Object.assign(state[k], mergeRec(state[k], stored[k])); }
+      stored[k] = state[k];
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(stored)); } catch (e) { return; }
+    changed.forEach(function (k) { snap[k] = JSON.stringify(state[k]); });
+  }
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flushSave, 150);
+  }
+  window.addEventListener("pagehide", flushSave);
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flushSave(); });
+  // Another tab saved. Take its progress into memory, without touching what this tab is editing.
+  window.addEventListener("storage", function (ev) {
+    if (ev.key !== null && ev.key !== KEY) return;
+    var incoming;
+    try { incoming = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { return; }
+    Object.keys(incoming).forEach(function (k) {
+      var v = incoming[k], cur = state[k];
+      var clean = cur === undefined || JSON.stringify(cur) === snap[k];
+      if (isRec(cur) && isRec(v)) {
+        Object.assign(cur, mergeRec(cur, v));
+        if (clean) snap[k] = JSON.stringify(cur);
+      } else if (clean) { state[k] = v; snap[k] = JSON.stringify(v); }
+    });
+    updateMeter();
+    if (curM) refreshStepper(curM, curIdx);
+    var scr = app.dataset.screen;
+    if (scr === "home" || scr === "complete") route(null, true);
+  });
+
+  // ---------- helpers ----------
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "html") n.innerHTML = attrs[k];
+      else if (k === "text") n.textContent = attrs[k];
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false) n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { if (c) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+  // replaceChildren that skips empty entries (null would show as the text "null")
+  function setApp() { app.replaceChildren.apply(app, Array.prototype.slice.call(arguments).filter(Boolean)); }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+  // Code for the attempt rule: no trailing spaces, no blank lines, no full-line comments.
+  function normCode(s) {
+    return String(s || "").replace(/\r\n/g, "\n").split("\n")
+      .map(function (l) { return l.replace(/\s+$/, ""); })
+      .filter(function (l) { var t = l.trim(); return t !== "" && t.charAt(0) !== "#"; })
+      .join("\n");
+  }
+  function hashStr(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h.toString(16) + ":" + s.length;
+  }
+  // Listeners that belong to one screen. They are removed when the screen changes.
+  var screenCleanup = [];
+  function onDoc(evt, fn) { document.addEventListener(evt, fn); screenCleanup.push(function () { document.removeEventListener(evt, fn); }); }
+
+  // ---------- course structure ----------
+  function buildScreens(m) {
+    var secs = {}, exs = {};
+    m.sections.forEach(function (s) { secs[s.id] = s; });
+    m.exercises.forEach(function (e) { exs[e.id] = e; });
+    return (m.screens || []).map(function (sc) {
+      return { t: sc.type, s: sc.section ? secs[sc.section] : null, e: sc.exercise ? exs[sc.exercise] : null };
+    });
+  }
+  var MODS = DATA.modules.map(function (m, i) { return { m: m, i: i, screens: buildScreens(m) }; });
+  function findMod(id) { for (var i = 0; i < MODS.length; i++) if (MODS[i].m.id === id) return MODS[i]; return null; }
+  function exDone(e) { return !!rec(e.id).passed; }
+  function quizDone(m) { return (m.quiz || []).every(function (q) { return !!qrec(q.id).passed; }); }
+  function takeKey(M) { return M.m.id + "-takeaways"; }
+  function screenDone(sc, M) {
+    if (sc.t === "learn") return !!rec(sc.s.id).seen;
+    if (sc.t === "quiz") return quizDone(M.m);
+    if (sc.t === "takeaways") return !!rec(takeKey(M)).seen;
+    return exDone(sc.e);
+  }
+  function modProgress(M) {
+    var d = M.m.exercises.filter(exDone).length + (M.m.quiz || []).filter(function (q) { return qrec(q.id).passed; }).length;
+    return { done: d, total: M.m.exercises.length + (M.m.quiz || []).length };
+  }
+  function courseCounts() {
+    var c = { ex: 0, exDone: 0, qz: 0, qzDone: 0 };
+    MODS.forEach(function (M) {
+      c.ex += M.m.exercises.length; c.exDone += M.m.exercises.filter(exDone).length;
+      c.qz += (M.m.quiz || []).length; c.qzDone += (M.m.quiz || []).filter(function (q) { return qrec(q.id).passed; }).length;
+    });
+    return c;
+  }
+  function updateMeter() {
+    var d = 0, t = 0;
+    MODS.forEach(function (M) { var p = modProgress(M); d += p.done; t += p.total; });
+    var pct = t ? Math.round((d / t) * 100) : 0;
+    document.getElementById("meter-fill").style.width = pct + "%";
+    document.getElementById("meter-text").textContent = d + "/" + t + " done";
+  }
+
+  // ---------- code editor: CodeMirror 5 from cdnjs, with a textarea fallback ----------
+  var CM_BASE = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/";
+  var CM_SRI = {
+    "codemirror.min.css": "sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==",
+    "codemirror.min.js": "sha512-OeZ4Yrb/W7d2W4rAMOO0HQ9Ro/aWLtpW9BUSR2UOWnSV2hprXLkkYnnCGc9NeLUxxE4ZG7zN16UuT1Elqq8Opg==",
+    "mode/python/python.min.js": "sha512-Vs2GKxnxnTQBRW7o2xXZ9A28njjmu5RToS42efiKNEWmikov0inZY522EtGVK5CcVo0M/FQwmXsTfl9skgRnvw=="
+  };
+  var cmReady = false;
+  function loadAsset(file) {
+    return new Promise(function (resolve, reject) {
+      var isCss = /\.css$/.test(file);
+      var n = document.createElement(isCss ? "link" : "script");
+      if (isCss) { n.rel = "stylesheet"; n.href = CM_BASE + file; } else { n.src = CM_BASE + file; n.async = false; }
+      n.integrity = CM_SRI[file]; n.crossOrigin = "anonymous";
+      n.onload = function () { resolve(); };
+      n.onerror = function () { reject(new Error("could not load " + file)); };
+      document.head.appendChild(n);
+    });
+  }
+  // Resolves true when CodeMirror and its Python mode are ready, false after a failure or 8 s.
+  var cmP = new Promise(function (resolve) {
+    var done = false;
+    function fin(ok) { if (done) return; done = true; cmReady = ok; clearTimeout(timer); resolve(ok); }
+    var timer = setTimeout(function () { fin(false); }, 8000);
+    try {
+      loadAsset("codemirror.min.css").catch(function () {});
+      loadAsset("codemirror.min.js")
+        .then(function () { return loadAsset("mode/python/python.min.js"); })
+        .then(function () { fin(!!(window.CodeMirror && window.CodeMirror.modes && window.CodeMirror.modes.python)); })
+        .catch(function (err) { console.warn(err); fin(false); });
+    } catch (err) { fin(false); }
+  });
+
+  // makeEditor(host, value, o): o = { readOnly, onChange, onRun, onSubmit, label }
+  // returns { kind, get, set, focus, refresh }
+  function makeEditor(host, value, o) {
+    function shortcut(ev) {
+      if ((ev.metaKey || ev.ctrlKey) && ev.key === "Enter") {
+        ev.preventDefault();
+        if (ev.shiftKey) { if (o.onSubmit) o.onSubmit(); } else if (o.onRun) o.onRun();
+        return true;
+      }
+      return false;
+    }
+    if (cmReady && window.CodeMirror) {
+      host.classList.add("is-cm");
+      var normalKeys = {
+        Tab: function (c) { if (c.somethingSelected()) c.indentSelection("add"); else c.replaceSelection("    ", "end"); },
+        "Shift-Tab": function (c) { c.indentSelection("subtract"); }
+      };
+      var freeKeys = { Tab: false, "Shift-Tab": false };   // after Esc, Tab moves focus out
+      var cm = window.CodeMirror(host, {
+        value: value, mode: "python", theme: "cb", lineNumbers: true, indentUnit: 4, tabSize: 4,
+        indentWithTabs: false, smartIndent: true, readOnly: !!o.readOnly, extraKeys: normalKeys,
+        inputStyle: "contenteditable", lineWrapping: false
+      });
+      cm.getInputField().setAttribute("aria-label", o.label || "Code");
+      cm.on("keydown", function (c, ev) {
+        if (shortcut(ev)) return;
+        if (ev.key === "Escape") c.setOption("extraKeys", freeKeys);
+        else if (ev.key !== "Tab" && ev.key !== "Shift") c.setOption("extraKeys", normalKeys);
+      });
+      cm.on("blur", function () { cm.setOption("extraKeys", normalKeys); });
+      if (o.onChange) cm.on("change", function () { o.onChange(cm.getValue()); });
+      return { kind: "codemirror", get: function () { return cm.getValue(); }, set: function (v) { cm.setValue(v); },
+               focus: function () { cm.focus(); }, refresh: function () { cm.refresh(); } };
+    }
+    // Fallback: a plain textarea with a line-number gutter.
+    var ta = el("textarea", { class: "code", spellcheck: "false", autocapitalize: "off", autocomplete: "off", "aria-label": o.label || "Code" });
+    ta.value = value;
+    if (o.readOnly) ta.readOnly = true;
+    var gutter = el("div", { class: "gutter", "aria-hidden": "true" });
+    function drawGutter() {
+      var n = ta.value.split("\n").length, g = "";
+      for (var i = 1; i <= n; i++) g += i + "\n";
+      gutter.textContent = g;
+      gutter.scrollTop = ta.scrollTop;
+    }
+    ta.addEventListener("input", function () { drawGutter(); if (o.onChange) o.onChange(ta.value); });
+    ta.addEventListener("scroll", function () { gutter.scrollTop = ta.scrollTop; });
+    var escaped = false;
+    ta.addEventListener("keydown", function (ev) {
+      if (shortcut(ev)) return;
+      if (o.readOnly) return;
+      if (ev.key === "Escape") { escaped = true; return; }
+      if (ev.key === "Tab" && !escaped) {
+        ev.preventDefault();
+        var s = ta.selectionStart, en = ta.selectionEnd, v = ta.value;
+        if (ev.shiftKey) {
+          var ls = v.lastIndexOf("\n", s - 1) + 1;
+          var m = /^ {1,4}/.exec(v.slice(ls));
+          if (m) { ta.setRangeText("", ls, ls + m[0].length, "preserve"); ta.selectionStart = ta.selectionEnd = Math.max(ls, s - m[0].length); }
+        } else { ta.setRangeText("    ", s, en, "end"); }
+        ta.dispatchEvent(new Event("input"));
+        return;
+      }
+      if (ev.key !== "Shift") escaped = false;
+      if (ev.key === "Enter" && !ev.shiftKey) {
+        var st = ta.selectionStart, val = ta.value;
+        var lineStart = val.lastIndexOf("\n", st - 1) + 1;
+        var line = val.slice(lineStart, st);
+        var indent = /^\s*/.exec(line)[0];
+        if (/:\s*$/.test(line)) indent += "    ";
+        ev.preventDefault();
+        ta.setRangeText("\n" + indent, st, ta.selectionEnd, "end");
+        ta.dispatchEvent(new Event("input"));
+      }
+    });
+    host.appendChild(gutter); host.appendChild(ta);
+    drawGutter();
+    return { kind: "textarea", get: function () { return ta.value; },
+             set: function (v) { ta.value = v; drawGutter(); if (o.onChange) o.onChange(v); },
+             focus: function () { ta.focus(); }, refresh: function () { drawGutter(); } };
+  }
+
+  // ---------- Python runtime (in a Web Worker) ----------
+  // Python runs off the main thread. A watchdog terminates the worker when
+  // code runs too long (C-level loops, swallowed time limits), so the tab
+  // never freezes; the worker then restarts.
+  var WATCHDOG_MS = 15000;
+  var WORKER_SRC = [
+    "var py = null;",
+    "self.onmessage = async function (ev) {",
+    "  var m = ev.data;",
+    "  if (m.type === 'init') {",
+    "    try {",
+    "      importScripts(m.indexURL + 'pyodide.js');",
+    "      var opts = { indexURL: m.indexURL };",
+    "      if (m.packageBaseUrl) opts.packageBaseUrl = m.packageBaseUrl;",
+    "      py = await loadPyodide(opts);",
+    "      if (m.packages.length) await py.loadPackage(m.packages);",
+    "      if (m.pypi.length) { await py.loadPackage('micropip'); await py.pyimport('micropip').install(m.pypi); }",
+    "      py.runPython(m.harness);",
+    "      self.postMessage({ type: 'ready' });",
+    "    } catch (err) { self.postMessage({ type: 'init-error', error: String(err && err.message || err) }); }",
+    "    return;",
+    "  }",
+    "  if (m.type === 'run') {",
+    "    try {",
+    "      var g = py.globals;",
+    "      g.set('_cb_setup', m.setup); g.set('_cb_code', m.code); g.set('_cb_tests', m.tests);",
+    "      var out = py.runPython('import json as _cb_json\\n_cb_json.dumps(run_exercise(_cb_setup, _cb_code, _cb_tests))');",
+    "      self.postMessage({ type: 'result', id: m.id, result: JSON.parse(out) });",
+    "    } catch (err) {",
+    "      self.postMessage({ type: 'result', id: m.id, result: { status: 'error', message: 'The checker itself failed: ' + String(err && err.message || err), printed: '' } });",
+    "    }",
+    "  }",
+    "};"
+  ].join("\n");
+  var worker = null, pyReady = false, pyLoading = null, runSeq = 0, pending = {};
+  var pyBadge = document.getElementById("pystatus");
+  function setPy(stateName, text) { pyBadge.dataset.state = stateName; pyBadge.textContent = text; }
+  function absUrl(u) { try { return new URL(u, location.href).href; } catch (e) { return u; } }
+  function ensurePy() {
+    if (pyReady) return Promise.resolve(true);
+    if (pyLoading) return pyLoading;
+    setPy("loading", "Python loading…");
+    pyLoading = new Promise(function (resolve, reject) {
+      var w;
+      try { w = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }))); }
+      catch (err) { reject(err); return; }
+      worker = w;
+      w.onmessage = function (ev) {
+        var m = ev.data;
+        if (m.type === "ready") { pyReady = true; setPy("ready", "Python ready"); document.dispatchEvent(new Event("py-ready")); resolve(true); }
+        else if (m.type === "init-error") { reject(new Error(m.error)); }
+        else if (m.type === "result" && pending[m.id]) { var p = pending[m.id]; delete pending[m.id]; clearTimeout(p.timer); p.resolve(m.result); }
+      };
+      w.onerror = function (ev) { reject(new Error(ev.message || "The Python worker failed.")); };
+      w.postMessage({ type: "init", indexURL: absUrl(RT.indexURL), packageBaseUrl: RT.packageBaseUrl ? absUrl(RT.packageBaseUrl) : null,
+        packages: RT.browser_packages || [], pypi: RT.pypi_packages || [], harness: DATA.harness });
+    });
+    pyLoading.then(function () { document.getElementById("pyerror").hidden = true; }, function () {});
+    pyLoading.catch(function (err) {
+      setPy("error", "Python failed to load");
+      pyLoading = null;
+      if (worker) { worker.terminate(); worker = null; }
+      console.error(err);
+      var box = document.getElementById("pyerror");
+      box.replaceChildren(el("div", { class: "notice", role: "alert" }, [
+        el("span", { text: "Python could not load: " + String(err && err.message || err).replace(/\.+$/, "") + ". The page loads Python from cdn.jsdelivr.net. An ad blocker, tracking protection or a company proxy can block it. Allow that site, then retry." }),
+        el("button", { class: "btn", type: "button", text: "Retry", onclick: function () { box.hidden = true; ensurePy(); } })
+      ]));
+      box.hidden = false;
+      document.dispatchEvent(new Event("py-reset"));
+    });
+    return pyLoading;
+  }
+  function restartPy() {
+    if (worker) worker.terminate();
+    worker = null; pyReady = false; pyLoading = null;
+    Object.keys(pending).forEach(function (k) { clearTimeout(pending[k].timer); delete pending[k]; });
+    setPy("loading", "Python restarting…");
+    document.dispatchEvent(new Event("py-reset"));
+    ensurePy();
+  }
+  // tests: the checks to run after the code. Pass "" to only run setup and code.
+  function runIn(e, code, tests) {
+    var t = tests === undefined ? (e.test_code || "") : tests;
+    return ensurePy().then(function () {
+      return new Promise(function (resolve) {
+        var id = ++runSeq;
+        var timer = setTimeout(function () {
+          delete pending[id];
+          restartPy();
+          resolve({ status: "timeout", message: "Your code ran too long and was stopped. Look for a loop that never ends, or a very large range(). Python restarts now.", printed: "" });
+        }, WATCHDOG_MS);
+        pending[id] = { resolve: resolve, timer: timer };
+        worker.postMessage({ type: "run", id: id, setup: e.setup_code || "", code: code || "", tests: t });
+      });
+    });
+  }
+
+  // ---------- views ----------
+  function setCrumb(text) { document.getElementById("crumb").textContent = text || ""; }
+
+  function nextModuleIndex() {
+    for (var i = 0; i < MODS.length; i++) { var p = modProgress(MODS[i]); if (p.done < p.total) return i; }
+    return -1;
+  }
+  function firstOpenScreen(M) {
+    for (var i = 0; i < M.screens.length; i++) if (!screenDone(M.screens[i], M)) return i;
+    return 0;
+  }
+  function allDone() { return MODS.length > 0 && nextModuleIndex() === -1; }
+
+  function viewHome() {
+    setCrumb("");
+    document.title = DATA.title;
+    var rows = MODS.map(function (M, i) {
+      var m = M.m, p = modProgress(M);
+      var lessons = m.sections.length;
+      var exCount = m.exercises.length;
+      var qz = (m.quiz || []).length;
+      var status;
+      if (p.total && p.done === p.total) status = el("span", { class: "chip chip-ok", text: "Complete" });
+      else if (p.done > 0) status = el("span", { class: "chip", text: p.done + " of " + p.total + " done" });
+      var first = firstOpenScreen(M);
+      var btnText = p.done === 0 ? "Start" : (p.done === p.total ? "Review" : "Continue");
+      return el("article", { class: "syl-row" }, [
+        el("div", { class: "syl-num", text: m.kind === "project" ? "Final" : pad(i + 1) }),
+        el("div", {}, [
+          el("h3", { text: m.title }),
+          el("p", { text: m.summary }),
+          el("div", { class: "syl-meta" }, [
+            el("span", { text: plural(lessons, "lesson", "lessons") }),
+            el("span", { text: exCount + (m.kind === "project" ? " project steps" : (exCount === 1 ? " exercise" : " exercises")) }),
+            qz ? el("span", { text: plural(qz, "quiz question", "quiz questions") }) : null
+          ]),
+          p.total ? el("div", { class: "mini", role: "img", "aria-label": p.done + " of " + p.total + " done" }, [el("i", { style: "width:" + Math.round(p.done / p.total * 100) + "%" })]) : null,
+          m.objectives && m.objectives.length ? el("details", {}, [
+            el("summary", { text: "What you will be able to do" }),
+            el("ul", {}, m.objectives.map(function (o) { return el("li", { text: o }); }))
+          ]) : null
+        ]),
+        el("div", { class: "syl-side" }, [
+          m.kind === "project" ? el("span", { class: "chip chip-proj", text: "Project" }) : null,
+          status || null,
+          el("a", { class: "btn" + (i === nextModuleIndex() ? " btn-primary" : ""), href: "#" + m.id + "--" + first, text: btnText })
+        ])
+      ]);
+    });
+    var facts = el("div", { class: "facts" }, [
+      DATA.outcomes && DATA.outcomes.length ? el("section", {}, [el("h2", { text: "By the end you can" }),
+        el("ul", {}, DATA.outcomes.map(function (o) { return el("li", { text: o }); }))]) : null,
+      DATA.prerequisites && DATA.prerequisites.length ? el("section", {}, [el("h2", { text: "Before you start" }),
+        el("ul", {}, DATA.prerequisites.map(function (o) { return el("li", { text: o }); }))]) : null
+    ]);
+    // "Continue where you left off": the last screen the learner opened.
+    var cont = null;
+    var lm = typeof state._last === "string" ? /^(.+)--(\d+)$/.exec(state._last) : null;
+    var LM = lm && findMod(lm[1]);
+    if (LM && parseInt(lm[2], 10) < LM.screens.length) {
+      cont = el("div", { class: "cont" }, [
+        el("a", { class: "btn btn-primary", id: "continue-btn", href: "#" + state._last, text: "Continue where you left off" }),
+        el("span", { class: "cont-note", text: LM.m.title })
+      ]);
+    } else if (allDone()) {
+      cont = el("div", { class: "cont" }, [el("a", { class: "btn btn-primary", href: "#complete", text: "See what you finished" })]);
+    }
+    app.replaceChildren(el("div", { class: "home" }, [
+      el("section", { class: "hero" }, [
+        el("div", { class: "eyebrow", text: DATA.level + " · " + MODS.length + " modules · runs in your browser" }),
+        el("h1", { text: DATA.title }),
+        DATA.tagline ? el("p", { class: "tagline", text: DATA.tagline }) : null,
+        el("div", { class: "prose", html: DATA.description_html }),
+        cont
+      ]),
+      facts,
+      el("section", {}, [el("h2", { class: "eyebrow", text: "Syllabus", style: "margin-bottom:8px" }),
+        el("div", { class: "syllabus" }, rows)])
+    ]));
+  }
+
+  function stepper(M, idx) {
+    var exN = 0;
+    return el("nav", { class: "stepper", "aria-label": "Screens in this module" }, M.screens.map(function (sc, i) {
+      var label, title;
+      if (sc.t === "learn") { label = "L"; title = "Lesson: " + sc.s.heading; }
+      else if (sc.t === "quiz") { label = "Q"; title = "Quiz"; }
+      else if (sc.t === "takeaways") { label = "T"; title = "Takeaways"; }
+      else {
+        label = String(++exN);
+        title = (sc.e.kind === "recall" ? "Recall: " : "Exercise: ") + sc.e.title;
+      }
+      return el("button", { class: "step", "data-type": sc.t, "data-done": screenDone(sc, M) ? "1" : "0",
+        "aria-current": i === idx ? "step" : null, title: title, "aria-label": title,
+        onclick: function () { location.hash = M.m.id + "--" + i; } }, [label]);
+    }));
+  }
+  function refreshStepper(M, idx) {
+    var st = document.querySelectorAll(".step");
+    M.screens.forEach(function (sc, i) { if (st[i]) st[i].dataset.done = screenDone(sc, M) ? "1" : "0"; });
+  }
+
+  function pager(M, idx, nextLabel) {
+    var prev = idx > 0 ? "#" + M.m.id + "--" + (idx - 1) : (M.i > 0 ? "#" + MODS[M.i - 1].m.id + "--" + (MODS[M.i - 1].screens.length - 1) : "#");
+    var next, last = idx >= M.screens.length - 1;
+    if (!last) next = "#" + M.m.id + "--" + (idx + 1);
+    else if (M.i < MODS.length - 1) next = "#" + MODS[M.i + 1].m.id + "--0";
+    else next = "#complete";
+    var nextText = !last ? (nextLabel || "Next") : (M.i < MODS.length - 1 ? "Next module" : "Finish course");
+    return el("div", { class: "pager" }, [
+      el("a", { class: "btn", href: prev, text: "← Back" }),
+      el("a", { class: "btn btn-primary", href: next, id: "next-btn", text: nextText + " →" })
+    ]);
+  }
+
+  // "Optional: watch" links with YouTube thumbnails. Links open in a new tab.
+  function videoList(videos) {
+    return el("ul", { class: "watch-list" }, videos.map(function (v) {
+      return el("li", {}, [el("a", { class: "vid", href: v.url, target: "_blank", rel: "noopener noreferrer" }, [
+        el("img", { src: "https://i.ytimg.com/vi/" + v.id + "/hqdefault.jpg", alt: "", loading: "lazy", referrerpolicy: "no-referrer",
+                    onerror: function (ev) { ev.target.style.visibility = "hidden"; } }),
+        el("div", {}, [
+          el("div", { class: "vid-title", text: v.title }),
+          el("div", { class: "vid-meta", text: v.channel + " · opens YouTube in a new tab" }),
+          v.why ? el("div", { class: "vid-why", text: v.why }) : null
+        ])
+      ])]);
+    }));
+  }
+  function watchBox(M) {
+    var vs = M.m.videos || [];
+    if (!vs.length) return null;
+    return el("details", { class: "watch", id: "watch-box" }, [el("summary", { text: "Optional: watch" }), videoList(vs)]);
+  }
+
+  function viewLearn(M, idx) {
+    var sc = M.screens[idx];
+    var r = rec(sc.s.id); r.seen = true; save();
+    setApp(
+      stepper(M, idx),
+      idx === 0 ? watchBox(M) : null,
+      el("article", { class: "lesson" }, [
+        el("div", { class: "eyebrow", text: (M.m.kind === "project" ? "Project brief" : "Lesson") }),
+        el("h1", { text: sc.s.heading }),
+        el("div", { class: "prose", html: sc.s.html })
+      ]),
+      pager(M, idx, "Continue")
+    );
+  }
+
+  function exerciseLabel(M, e) {
+    var list = M.m.exercises.filter(function (x) { return x.kind === e.kind; });
+    var n = list.indexOf(e) + 1;
+    if (e.kind === "recall") return "Recall" + (e.recall_from ? " · from “" + e.recall_from + "”" : "");
+    if (e.kind === "project-step") return "Project step " + n + " of " + list.length;
+    return "Exercise " + n + " of " + list.length;
+  }
+
+  function viewExercise(M, idx) {
+    var sc = M.screens[idx], e = sc.e, s = sc.s, r = rec(e.id);
+    var isProject = e.kind === "project-step";
+    var solutionAfter = isProject ? 5 : 3;
+    if (r.code === null || r.code === undefined) r.code = e.starter_code;
+    if (s) { rec(s.id).seen = true; }
+
+    var running = false, ed = null, dataEd = null;
+    var nh = e.hints_html.length;
+
+    // --- left: lesson text, instructions, help ---
+    var hintsBox = el("div", { class: "hints", "aria-live": "polite" });
+    var solBox = el("div", {});
+    function drawHints() {
+      hintsBox.replaceChildren.apply(hintsBox, e.hints_html.slice(0, r.hints).map(function (h, i) {
+        return el("div", { class: "hint" }, [el("div", { class: "hint-label", text: "Hint " + (i + 1) }), el("div", { class: "prose", html: h })]);
+      }));
+    }
+    var hintBtn = el("button", { class: "btn btn-marker", type: "button", id: "hint-btn", onclick: showHint });
+    var solBtn = el("button", { class: "btn", type: "button", id: "sol-btn", onclick: askSolution, text: "Show solution" });
+    var attempts = el("span", { class: "attempts", id: "attempts" });
+    var hintLock = el("p", { class: "lock-note", id: "hint-lock" });
+    var solLock = el("p", { class: "lock-note", id: "sol-lock" });
+    hintLock.hidden = true; solLock.hidden = true;
+    var brief = el("section", { class: "brief" }, [
+      el("div", { class: "eyebrow", text: exerciseLabel(M, e) }),
+      el("h1", { text: s ? s.heading : e.title }),
+      e.unverified ? el("div", { class: "notice", text: "Automatic verification found a problem with this exercise. The checks may reject a correct answer." }) : null,
+      s ? el("div", { class: "prose", html: s.html }) : null,
+      el("section", { class: "instr", "aria-labelledby": "instr-h" }, [
+        el("h2", { class: "instr-head", id: "instr-h", text: "Instructions" }),
+        s ? el("h3", { class: "instr-title", text: e.title }) : null,
+        el("div", { class: "prose", html: e.instructions_html })
+      ]),
+      el("div", { class: "help" }, [
+        el("div", { class: "help-row" }, [nh ? hintBtn : null, solBtn, attempts]),
+        hintLock, solLock, hintsBox, solBox
+      ])
+    ]);
+
+    // --- right: Code | Data tabs, toolbar, console ---
+    var editorHost = el("div", { class: "editor", id: "editor-host" });
+    var dataHost = el("div", { class: "editor", id: "data-host" });
+    var tabCode = el("button", { class: "tab", role: "tab", type: "button", id: "tab-code", "aria-controls": "panel-code", "aria-selected": "true", text: "Code" });
+    var tabData = el("button", { class: "tab", role: "tab", type: "button", id: "tab-data", "aria-controls": "panel-data", "aria-selected": "false", tabindex: "-1", text: "Data" });
+    var panelCode = el("div", { class: "tabpanel", role: "tabpanel", id: "panel-code", "aria-labelledby": "tab-code" }, [editorHost]);
+    var panelData = el("div", { class: "tabpanel", role: "tabpanel", id: "panel-data", "aria-labelledby": "tab-data", hidden: "hidden" }, [
+      el("div", { class: "panel-note", text: "This code runs before yours" }), dataHost]);
+    function selectTab(which, focus) {
+      var code = which === "code";
+      tabCode.setAttribute("aria-selected", code ? "true" : "false"); tabCode.tabIndex = code ? 0 : -1;
+      tabData.setAttribute("aria-selected", code ? "false" : "true"); tabData.tabIndex = code ? -1 : 0;
+      panelCode.hidden = !code; panelData.hidden = code;
+      if (code) { if (ed) { ed.refresh(); if (focus) ed.focus(); } } else if (dataEd) dataEd.refresh();
+      if (focus === "tab") (code ? tabCode : tabData).focus();
+    }
+    tabCode.addEventListener("click", function () { selectTab("code", true); });
+    tabData.addEventListener("click", function () { selectTab("data", false); });
+    [tabCode, tabData].forEach(function (t) {
+      t.addEventListener("keydown", function (ev) {
+        if (ev.key === "ArrowRight" || ev.key === "ArrowLeft" || ev.key === "Home" || ev.key === "End") {
+          ev.preventDefault();
+          var toData = ev.key === "ArrowRight" || ev.key === "End" ? true : (ev.key === "Home" || ev.key === "ArrowLeft" ? false : t === tabCode);
+          selectTab(toData ? "data" : "code", "tab");
+        }
+      });
+    });
+
+    var outStatus = el("div", { class: "out-status", id: "console-status", "data-kind": "idle", text: "Run your code to see its output. Submit to check it." });
+    var outMsg = el("div", { class: "out-msg", id: "console-msg" });
+    var outNote = el("div", { class: "out-note", id: "console-note" });
+    var outPrintedLabel = el("div", { class: "out-label", text: "Printed output" });
+    var outPrinted = el("pre", { class: "out-printed", id: "console-printed" });
+    outMsg.hidden = true; outNote.hidden = true; outPrinted.hidden = true; outPrintedLabel.hidden = true;
+    var output = el("section", { class: "output", "aria-live": "polite", "aria-label": "Console" }, [outStatus, outMsg, outNote, outPrintedLabel, outPrinted]);
+
+    function btn(label, kbd, id, cls, fn) {
+      return el("button", { class: cls, type: "button", id: id, onclick: fn }, [el("span", { class: "lbl", text: label }), " ", el("span", { class: "kbd", text: kbd })]);
+    }
+    var runBtn = btn("Run", "⌘/Ctrl ↵", "run-btn", "btn", function () { exec("run"); });
+    var submitBtn = btn("Submit", "⇧ ⌘/Ctrl ↵", "submit-btn", "btn btn-primary", function () { exec("submit"); });
+    var resetBtn = el("button", { class: "btn", type: "button", id: "reset-btn", text: "Reset code", onclick: function () {
+      ed.set(e.starter_code); r.code = e.starter_code; save(); ed.focus();
+    } });
+
+    function setLbl(b, text) { b.querySelector(".lbl").textContent = text; }
+    function refreshControls() {
+      if (nh) {
+        if (r.hints >= nh) { hintBtn.textContent = "All hints shown"; hintBtn.disabled = true; hintBtn.title = ""; hintLock.hidden = true; hintLock.textContent = ""; }
+        else {
+          hintBtn.textContent = "Hint " + (r.hints + 1) + " of " + nh;
+          // Hint k unlocks after k counted attempts.
+          var unlocked = r.attempts > r.hints;
+          hintBtn.disabled = !unlocked;
+          var why = unlocked ? "" : "Hint " + (r.hints + 1) + " is locked. You need " + plural(r.hints + 1, "counted attempt", "counted attempts") +
+            " (you have " + r.attempts + "). Submit new code to count an attempt.";
+          hintBtn.title = why; hintLock.textContent = why; hintLock.hidden = !why;
+        }
+      }
+      var solOk = r.attempts >= solutionAfter && r.hints >= nh;
+      solBtn.disabled = !solOk || r.solution;
+      var need = [];
+      if (r.attempts < solutionAfter) need.push(plural(solutionAfter - r.attempts, "more counted attempt", "more counted attempts"));
+      if (r.hints < nh) need.push("all hints shown");
+      var solWhy = solOk || r.solution ? "" : "The solution is locked. You need " + need.join(" and ") + ".";
+      solBtn.title = solWhy; solLock.textContent = solWhy; solLock.hidden = !solWhy;
+      attempts.textContent = plural(r.attempts, "attempt", "attempts");
+      if (!pyReady) { runBtn.disabled = submitBtn.disabled = true; setLbl(runBtn, "Waiting for Python…"); setLbl(submitBtn, "Submit"); }
+      else if (running) { runBtn.disabled = submitBtn.disabled = true; setLbl(runBtn, running === "run" ? "Running…" : "Run"); setLbl(submitBtn, running === "submit" ? "Checking…" : "Submit"); }
+      else { runBtn.disabled = submitBtn.disabled = false; setLbl(runBtn, "Run"); setLbl(submitBtn, "Submit"); }
+    }
+    function showHint() {
+      if (r.hints < nh && r.attempts > r.hints) { r.hints++; save(); drawHints(); refreshControls(); }
+    }
+    function askSolution() {
+      solBox.replaceChildren(el("div", { class: "confirm" }, [
+        el("p", { text: "Try once more first? Reading the answer feels like progress, but writing it yourself is what makes it stick." }),
+        el("div", { class: "row" }, [
+          el("button", { class: "btn", type: "button", text: "Keep trying", onclick: function () { solBox.replaceChildren(); ed.focus(); } }),
+          el("button", { class: "btn btn-primary", type: "button", id: "sol-confirm", text: "Show the solution", onclick: function () { r.solution = true; save(); drawSolution(); refreshControls(); } })
+        ])
+      ]));
+    }
+    function drawSolution() {
+      if (!r.solution) { solBox.replaceChildren(); return; }
+      var pre = el("pre", {}); pre.textContent = e.solution_code;
+      var hidden = false;
+      var toggle = el("button", { class: "btn", type: "button", text: "Hide it and write it myself", onclick: function () {
+        hidden = !hidden; pre.hidden = hidden; toggle.textContent = hidden ? "Show the solution again" : "Hide it and write it myself";
+      } });
+      solBox.replaceChildren(el("div", { class: "solution" }, [
+        el("div", { class: "hint-label", text: "Solution" }),
+        pre,
+        el("p", { style: "margin:0", text: "Read it, hide it, then type it into the editor from memory and Submit it." }),
+        el("div", {}, [toggle])
+      ]));
+    }
+
+    function showPrinted(res) {
+      var hasOut = !!(res.printed && res.printed.length);
+      outPrinted.textContent = res.printed || "";
+      outPrinted.hidden = !hasOut; outPrintedLabel.hidden = !hasOut;
+      return hasOut;
+    }
+    function showRun(res) {
+      var ok = res.status === "pass";
+      var kind = ok ? "ran" : "error";
+      outStatus.dataset.kind = kind;
+      outStatus.textContent = ok ? "Ran without errors"
+        : (res.status === "timeout" ? "Your code took too long." : (res.status === "setup_error" ? "The exercise setup failed." : "Your code raised an error."));
+      outMsg.textContent = ok ? "" : res.message; outMsg.hidden = ok;
+      var hasOut = showPrinted(res);
+      outNote.textContent = ok && !hasOut ? "Nothing was printed. Use print() to show a value. Run does not check your answer. Use Submit for that." : (ok ? "Run does not check your answer. Use Submit for that." : "");
+      outNote.hidden = !outNote.textContent;
+    }
+    function showSubmit(res, counted) {
+      var kind = res.status === "pass" ? "pass" : (res.status === "fail" || res.status === "test_error" ? "fail" : "error");
+      outStatus.dataset.kind = kind;
+      outStatus.textContent = { pass: r.solution ? "Correct. Solved after viewing the solution." : "Correct. Well done.",
+                    fail: "Not yet. One check failed.", error: res.status === "timeout" ? "Your code took too long." : "Your code raised an error." }[kind];
+      outMsg.textContent = res.status === "pass" ? (res.checks_passed + " checks passed.") : res.message;
+      outMsg.hidden = false;
+      showPrinted(res);
+      outNote.textContent = (!counted && kind !== "pass") ? "This code is the same as your starter code or an earlier Submit. Comments and blank lines do not count. So it is not a new attempt." : "";
+      outNote.hidden = !outNote.textContent;
+    }
+    async function exec(kind) {
+      if (!pyReady) { ensurePy(); return; }
+      if (running) return;
+      var code = ed.get();
+      running = kind; refreshControls();
+      outStatus.dataset.kind = "idle"; outStatus.textContent = kind === "run" ? "Running…" : "Checking…";
+      var res;
+      try { res = await runIn(e, code, kind === "run" ? "" : undefined); }
+      catch (err) { res = { status: "error", message: "Python is not available: " + err.message, printed: "" }; }
+      running = false;
+      if (!document.body.contains(runBtn)) return;   // the learner left this screen
+      if (kind === "run") { showRun(res); refreshControls(); return; }
+      // Only Submit counts, and only when the code is new.
+      var h = hashStr(normCode(code));
+      var subs = r.subs = Array.isArray(r.subs) ? r.subs : [];
+      var counted = h !== hashStr(normCode(e.starter_code)) && subs.indexOf(h) < 0;
+      if (subs.indexOf(h) < 0) { subs.push(h); if (subs.length > 60) subs.shift(); }
+      if (counted) r.attempts++;
+      if (res.status === "pass") r.passed = true;
+      save(); showSubmit(res, counted); refreshControls(); updateMeter(); refreshStepper(M, idx);
+      var nb = document.getElementById("next-btn");
+      if (nb && r.passed) nb.textContent = nb.textContent.replace(/^Skip for now/, "Next");
+    }
+
+    var bench = el("section", { class: "workbench" }, [
+      el("div", { class: "tabs", role: "tablist", "aria-label": "Editor panels" }, [tabCode, tabData]),
+      panelCode, panelData,
+      el("div", { class: "toolbar" }, [runBtn, submitBtn, el("span", { class: "spacer" }), resetBtn]),
+      el("div", { class: "console-head", text: "Console" }),
+      output
+    ]);
+
+    var nextLabel = r.passed ? "Next" : "Skip for now";
+    setApp(stepper(M, idx), idx === 0 ? watchBox(M) : null, el("div", { class: "bench" }, [brief, bench]), pager(M, idx, nextLabel));
+    // Editors are made after the nodes are in the page, so CodeMirror can measure them.
+    ed = makeEditor(editorHost, r.code, { label: "Your code", onChange: function (v) { r.code = v; save(); }, onRun: function () { exec("run"); }, onSubmit: function () { exec("submit"); } });
+    dataEd = makeEditor(dataHost, (typeof e.data_code === "string" ? e.data_code : e.setup_code) || "# This exercise has no setup code.\n", { readOnly: true, label: "Setup code (read only)", onRun: function () { exec("run"); }, onSubmit: function () { exec("submit"); } });
+    ed.refresh();
+    drawHints(); drawSolution(); refreshControls();
+    if (r.passed) { outStatus.dataset.kind = "pass"; outStatus.textContent = "You already solved this one. Submit again any time."; }
+    var onReady = function () { refreshControls(); };
+    onDoc("py-ready", onReady);
+    onDoc("py-reset", onReady);
+    ensurePy().catch(function () {});
+  }
+
+  function quizItem(q, n, total, onResult) {
+    var r = qrec(q.id), name = "q-" + q.id, justWrong = false;
+    var fb = el("div", { class: "q-fb", "aria-live": "polite", "data-kind": "none" });
+    var checkBtn = el("button", { class: "btn btn-primary", type: "button", id: "check-" + q.id, text: "Check" });
+    var inputs = [];
+    var labels = q.options.map(function (o, i) {
+      var inp = el("input", { type: "radio", name: name, value: String(i), id: name + "-" + i });
+      if (r.choice === i) inp.checked = true;
+      inputs.push(inp);
+      return el("label", { class: "opt", for: name + "-" + i, "data-state": "" }, [inp, el("span", { text: o })]);
+    });
+    function draw() {
+      var kids = [];
+      if (r.passed) {
+        fb.dataset.kind = "ok";
+        kids.push(el("div", { class: "verdict", text: "Correct." }));
+      } else if (justWrong) {
+        fb.dataset.kind = "no";
+        kids.push(el("div", { class: "verdict", text: "Not yet. Choose another option and check again." }));
+      } else fb.dataset.kind = "none";
+      if (r.passed || r.tries >= 2) kids.push(el("div", { class: "prose", html: q.explanation_html }));
+      fb.replaceChildren.apply(fb, kids);
+      labels.forEach(function (l, i) { l.dataset.state = r.passed && i === q.answer ? "right" : ""; });
+      inputs.forEach(function (inp) { inp.disabled = !!r.passed; });
+      checkBtn.disabled = !!r.passed;
+      checkBtn.textContent = r.passed ? "Answered" : "Check";
+    }
+    checkBtn.addEventListener("click", function () {
+      var sel = -1;
+      inputs.forEach(function (inp, i) { if (inp.checked) sel = i; });
+      if (sel < 0) { justWrong = false; fb.dataset.kind = "no"; fb.replaceChildren(el("div", { class: "verdict", text: "Choose an option first." })); return; }
+      r.choice = sel;
+      if (sel === q.answer) r.passed = true; else { r.tries++; justWrong = true; }
+      save(); draw(); onResult();
+    });
+    draw();
+    return el("fieldset", { class: "q" }, [
+      el("legend", { text: "Question " + n + " of " + total }),
+      el("div", { class: "prose", html: q.question_html }),
+      el("div", { class: "opts" }, labels),
+      el("div", {}, [checkBtn]),
+      fb
+    ]);
+  }
+
+  function viewQuiz(M, idx) {
+    var qs = M.m.quiz || [];
+    var items = qs.map(function (q, i) {
+      return quizItem(q, i + 1, qs.length, function () { updateMeter(); refreshStepper(M, idx); });
+    });
+    setApp(
+      stepper(M, idx),
+      idx === 0 ? watchBox(M) : null,
+      el("article", { class: "quiz" }, [
+        el("div", { class: "eyebrow", text: "Quiz" }),
+        el("h1", { text: "Check what you learned" })
+      ].concat(items)),
+      pager(M, idx, "Next")
+    );
+  }
+
+  function viewTakeaways(M, idx) {
+    rec(takeKey(M)).seen = true; save();
+    var vs = M.m.videos || [];
+    var last = M.i >= MODS.length - 1;
+    var nextHref = last ? "#complete" : "#" + MODS[M.i + 1].m.id + "--0";
+    setApp(
+      stepper(M, idx),
+      idx === 0 ? watchBox(M) : null,
+      el("article", { class: "take" }, [
+        el("div", {}, [el("div", { class: "eyebrow", text: "Takeaways" }), el("h1", { text: "Cheat sheet: " + M.m.title })]),
+        el("ul", { class: "cheat", id: "cheat" }, (M.m.takeaways_html || []).map(function (t) { return el("li", { html: t }); })),
+        vs.length ? el("section", { id: "watch-section" }, [el("h2", { class: "eyebrow", text: "Optional: watch", style: "margin-bottom:10px" }), videoList(vs)]) : null,
+        el("div", {}, [el("a", { class: "btn btn-primary", id: "next-module-btn", href: nextHref, text: last ? "Finish course →" : "Next module →" })])
+      ]),
+      el("div", { class: "pager" }, [
+        el("a", { class: "btn", href: idx > 0 ? "#" + M.m.id + "--" + (idx - 1) : "#", text: "← Back" }),
+        el("a", { class: "btn", href: "#", text: "Syllabus" })
+      ])
+    );
+  }
+
+  function viewComplete() {
+    setCrumb("Course summary");
+    document.title = "Summary · " + DATA.title;
+    var c = courseCounts();
+    var done = allDone();
+    var checked = Array.isArray(state._outcomes) ? state._outcomes : [];
+    var list = el("ul", { class: "checklist", id: "outcomes" }, (DATA.outcomes || []).map(function (o, i) {
+      var inp = el("input", { type: "checkbox", id: "oc-" + i });
+      inp.checked = checked.indexOf(i) >= 0;
+      inp.addEventListener("change", function () {
+        var cur = Array.isArray(state._outcomes) ? state._outcomes.slice() : [];
+        var at = cur.indexOf(i);
+        if (inp.checked && at < 0) cur.push(i); else if (!inp.checked && at >= 0) cur.splice(at, 1);
+        state._outcomes = cur; save();
+      });
+      return el("li", {}, [el("label", { for: "oc-" + i }, [inp, el("span", { text: o })])]);
+    }));
+    var nm = nextModuleIndex();
+    app.replaceChildren(el("div", { class: "done-page" }, [
+      el("div", {}, [el("div", { class: "eyebrow", text: DATA.title }), el("h1", { id: "complete-title", text: done ? "You finished the course" : "Your progress so far" })]),
+      done ? null : el("div", { class: "notice notice-info" }, [
+        "Some screens are not done yet. ",
+        nm >= 0 ? el("a", { href: "#" + MODS[nm].m.id + "--" + firstOpenScreen(MODS[nm]), text: "Continue with " + MODS[nm].m.title }) : null
+      ]),
+      el("div", { class: "counts" }, [
+        el("div", { class: "count" }, [el("b", { id: "count-ex", text: c.exDone + " / " + c.ex }), el("span", { text: "exercises done" })]),
+        el("div", { class: "count" }, [el("b", { id: "count-qz", text: c.qzDone + " / " + c.qz }), el("span", { text: "quiz questions done" })])
+      ]),
+      (DATA.outcomes && DATA.outcomes.length) ? el("section", {}, [
+        el("h2", { class: "eyebrow", text: "Check what you can do now", style: "margin-bottom:10px" }), list]) : null,
+      el("div", {}, [el("a", { class: "btn btn-primary", href: "#", text: "Back to the syllabus" })])
+    ]));
+  }
+
+  // ---------- router (plain #name hashes only) ----------
+  var routeSeq = 0, curM = null, curIdx = 0;
+  var live = document.getElementById("route-live");
+  // After a screen is drawn: say its title in the live region and move focus to its heading.
+  function announce(quiet) {
+    var h = app.querySelector("h1");
+    if (!h) return;
+    live.textContent = h.textContent;
+    if (quiet) return;
+    h.setAttribute("tabindex", "-1");
+    try { h.focus({ preventScroll: true }); } catch (e) { h.focus(); }
+  }
+  function route(ev, quiet) {
+    var seq = ++routeSeq;
+    screenCleanup.splice(0).forEach(function (f) { f(); });
+    delete app.dataset.screen;
+    var h = decodeURIComponent(location.hash.replace(/^#/, ""));
+    var m = /^(.+)--(\d+)$/.exec(h);
+    var M = m && findMod(m[1]);
+    curM = null;
+    updateMeter();
+    document.getElementById("brand").textContent = DATA.title;
+    if (h === "complete") { viewComplete(); announce(quiet); app.dataset.screen = "complete"; if (!quiet) window.scrollTo(0, 0); return; }
+    if (!M || !M.screens.length) { viewHome(); announce(quiet); app.dataset.screen = "home"; if (!quiet) window.scrollTo(0, 0); return; }
+    var idx = Math.min(parseInt(m[2], 10), M.screens.length - 1);
+    var sc = M.screens[idx];
+    curM = M; curIdx = idx;
+    state._last = M.m.id + "--" + idx; save();
+    setCrumb((M.m.kind === "project" ? "Final project" : "Module " + (M.i + 1)) + " · " + M.m.title);
+    document.title = M.m.title + " · " + DATA.title;
+    var tag = M.m.id + "--" + idx;
+    if (sc.t === "learn") { viewLearn(M, idx); }
+    else if (sc.t === "quiz") { viewQuiz(M, idx); }
+    else if (sc.t === "takeaways") { viewTakeaways(M, idx); }
+    else {
+      // The editor type (CodeMirror or textarea) is chosen once, so wait until the load has ended.
+      if (!cmReady) {
+        app.replaceChildren(el("p", { class: "eyebrow", style: "padding-block:40px", text: "Loading the editor…" }));
+        cmP.then(function () { if (seq === routeSeq) { viewExercise(M, idx); announce(quiet); app.dataset.screen = tag; window.scrollTo(0, 0); } });
+        return;
+      }
+      viewExercise(M, idx);
+    }
+    announce(quiet);
+    app.dataset.screen = tag;
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", route);
+  route();
+  // Start Python and the editor in the background at once, so both are ready by the first exercise.
+  if (!SELFTEST) setTimeout(function () { ensurePy().catch(function () {}); }, 0);
+
+  // ---------- self-test (build pipeline only: ?selftest=1) ----------
+  if (SELFTEST) {
+    var t0 = performance.now();
+    (async function () {
+      await ensurePy();
+      var loadMs = Math.round(performance.now() - t0);
+      var results = [], bad = 0;
+      for (var a = 0; a < MODS.length; a++) {
+        for (var b = 0; b < MODS[a].m.exercises.length; b++) {
+          var e = MODS[a].m.exercises[b];
+          var sol = await runIn(e, e.solution_code);
+          var sta = await runIn(e, e.starter_code);
+          var ok = sol.status === "pass" && sta.status !== "pass";
+          if (!ok) bad++;
+          results.push({ id: e.id, ok: ok, solution: sol.status, solution_msg: sol.status === "pass" ? "" : sol.message, starter: sta.status });
+        }
+      }
+      window.__selftest = { ok: bad === 0, failures: bad, total: results.length, load_ms: loadMs, results: results };
+      app.appendChild(el("pre", { class: "selftest", id: "selftest", text: JSON.stringify(window.__selftest, null, 2) }));
+    })().catch(function (err) {
+      window.__selftest = { ok: false, fatal: String(err && err.message || err) };
+    });
+  }
+})();
+</script>

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+.env
+# Courses that the skill builds are not part of the skill.
+courses/
+.server.json
