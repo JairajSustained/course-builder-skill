@@ -1,7 +1,7 @@
 # course-builder
 
-A Claude Code skill that turns a topic into an interactive beginner course, in the style of
-DataQuest or freeCodeCamp. You give a topic, for example "Beautiful Soup". You get one HTML
+A skill for Claude Code and pi that turns a topic into an interactive beginner course, in the style
+of DataQuest or freeCodeCamp. You give a topic, for example "Beautiful Soup". You get one HTML
 page where learners read a short explanation, write real Python in the browser, and get
 automatic checks.
 
@@ -41,10 +41,13 @@ Scripts do the checks that an agent cannot be trusted to do (`scripts/verify.py`
 
 ## Requirements
 
-- [Claude Code](https://claude.com/claude-code). The workflow needs Claude Code's Workflow tool.
+- [Claude Code](https://claude.com/claude-code) (its Workflow tool runs the build), or
+  [pi](https://github.com/badlogic/pi-mono) (the bundled runner does, see below).
 - `python3`, [`uv`](https://docs.astral.sh/uv/), and Node.js 22 or later.
 - Google Chrome (for the browser test).
 - Internet access: the docs fetch, PyPI, and the CDNs below.
+- For pi: a web search tool. The runner enables `web_search_exa` / `web_fetch_exa` from the
+  [`pi-exa`](https://www.npmjs.com/package/pi-exa) package (`pi install npm:pi-exa`).
 
 Topics: Python, or Python libraries that run in [Pyodide](https://pyodide.org)
 (the Pyodide distribution, or pure-Python packages from PyPI).
@@ -54,11 +57,20 @@ Topics: Python, or Python libraries that run in [Pyodide](https://pyodide.org)
 Clone the repo into a skills folder:
 
 ```bash
-# for one project
+# Claude Code, for one project
 git clone https://github.com/JairajSustained/course-builder-skill .claude/skills/course-builder
-# or for all your projects
+# Claude Code, for all your projects
 git clone https://github.com/JairajSustained/course-builder-skill ~/.claude/skills/course-builder
+
+# pi, for one project (a symlink keeps one copy of the skill)
+mkdir -p .pi/skills
+ln -s ../../.claude/skills/course-builder .pi/skills/course-builder
+# pi, for all your projects
+ln -s ../.claude/skills/course-builder ~/.pi/agent/skills/course-builder
 ```
+
+pi also discovers `.agents/skills/` and `~/.agents/skills/`. Run `/reload` in an open pi
+session after adding the folder.
 
 ## Use
 
@@ -68,21 +80,44 @@ In Claude Code, ask:
 make a course on Beautiful Soup
 ```
 
+In pi, ask the same thing, or force the skill with
+`/skill:course-builder make a course on Beautiful Soup`. Either way the build is long, so in pi
+the skill starts it in the background and polls `<course dir>/reports/workflow.log`.
+
+On pi the workflow runs through the bundled runner, which gives every agent its own
+`pi --print` child process:
+
+```bash
+node .pi/skills/course-builder/workflow/run-workflow.mjs \
+  --script .pi/skills/course-builder/workflow/build-course.js \
+  --args '{"topic":"Beautiful Soup","slug":"beautiful-soup","courseDir":"/abs/path/courses/beautiful-soup","skillDir":"/abs/path/.pi/skills/course-builder","today":"2025-01-30"}'
+```
+
+Options: `--concurrency` (default 3), `--timeout` seconds per agent (default 2700),
+`--model`, and `--dry-run`. Every agent runs on the model your pi session is on when you start
+the runner (pi exports it as `PI_PROVIDER`/`PI_MODEL`), so switching with `/model` changes what
+the build uses. Override with `--model` or `COURSE_BUILDER_MODEL`; the start line of
+`reports/workflow.log` names the model and where it came from. The runner writes the workflow's
+return value to `<course dir>/reports/workflow-result.json`, a per-agent run list to
+`workflow-runs.json`, and every prompt and answer to `reports/workflow/`.
+
 The course goes to `courses/<slug>/`. Open it with:
 
 ```bash
 python3 .claude/skills/course-builder/scripts/cb.py open courses/<slug>
 ```
 
-The build uses many agents. Every agent runs on Sonnet. To change the model, edit `MODEL`
-at the top of `workflow/build-course.js`.
+The build uses many agents. In Claude Code every agent runs on Sonnet; to change that, edit
+`MODEL` at the top of `workflow/build-course.js`. In pi the agents run on the model of the
+session that starts the build; pass `--model` to the runner to pin another one.
 
 ## Files
 
 | Path | Role |
 |---|---|
-| `SKILL.md` | The entry point that Claude Code reads |
+| `SKILL.md` | The entry point that the harness reads |
 | `workflow/build-course.js` | The team workflow |
+| `workflow/run-workflow.mjs` | The pi runner: provides the workflow primitives and runs each agent as a `pi --print` child process |
 | `scripts/cb.py` | The command-line tool that the agents use |
 | `scripts/verify.py` | All quality gates |
 | `scripts/harness.py` | Runs one exercise (local Python and the browser) |

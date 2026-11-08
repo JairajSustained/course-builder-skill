@@ -9,6 +9,17 @@ You turn a topic into a verified, interactive beginner course. A team of agents 
 the work in a workflow, the way a curriculum team works: draft, review each other, fix.
 Scripts check facts that an agent cannot be trusted to check.
 
+## Harnesses
+
+This skill runs the same workflow in two harnesses; everything except step 3 is identical.
+
+- **Claude Code:** the workflow runs inside the Workflow tool (`workflow/build-course.js`).
+- **pi:** there is no Workflow tool, so `workflow/run-workflow.mjs` runs the same script and
+  gives every agent its own `pi --print` child process. See step 3.
+
+For pi, put this folder where pi discovers skills: `<project>/.pi/skills/course-builder/`
+(a symlink is fine), `~/.pi/agent/skills/course-builder/`, or `.agents/skills/course-builder/`.
+
 ## Fixed design decisions
 
 - **Learner level:** always beginner (knows basic Python). Do not ask.
@@ -18,8 +29,12 @@ Scripts check facts that an agent cannot be trusted to check.
 - **Output:** one HTML page (`dist/index.html`). Learners run Python in the browser
   (Pyodide). The skill chooses this format. Do not ask.
 - **Location:** courses go in `<project root>/courses/<slug>/`.
-- **Models:** every workflow agent runs on Sonnet (`MODEL` at the top of
-  `workflow/build-course.js`). Do not change it without asking the user.
+- **Models:** in Claude Code every workflow agent runs on Sonnet (`MODEL` at the top of
+  `workflow/build-course.js`). In pi every agent runs on the model the calling pi session is
+  using right now (pi exports it to the shell as `PI_PROVIDER`/`PI_MODEL`), so the build follows
+  whatever you selected with `/model`. Override with `--model` or `COURSE_BUILDER_MODEL`; with
+  neither and no pi session, a fresh pi session's default is used. Do not change it without
+  asking the user.
 
 ## Course format (v2)
 
@@ -64,13 +79,50 @@ Rebuild it with `"resume": "modules"`.
    python3 <skill dir>/scripts/cb.py init <course dir> --topic "<topic as the user said it>"
    ```
 
-3. **Run the workflow.** This skill instructs you to call the Workflow tool. Call it with:
-   - `scriptPath`: `<skill dir>/workflow/build-course.js`
-   - `args`: `{"topic": "...", "slug": "...", "courseDir": "<abs course dir>", "skillDir": "<abs skill dir>", "today": "<YYYY-MM-DD>"}`
-     Optional args: `"resume"`, `"only"` and `"redo"` (see Resume).
+3. **Run the workflow.** The harness decides how, and only how, the agents start:
+   - **If you have a Workflow tool (Claude Code): use it.** Do not run `run-workflow.mjs` and do
+     not call `pi` from Claude Code. The workflow's agents are Claude Code subagents.
+   - **If you are pi (no Workflow tool): run the runner in the background** as described below.
 
-   Tell the user in one line that the build runs in the background, and that they can
-   watch it with `/workflows`. The run takes a long time (many agents).
+   Both branches run the same `workflow/build-course.js` and return the same value, so step 4
+   applies to either. Both take the same args:
+   `{"topic": "...", "slug": "...", "courseDir": "<abs course dir>", "skillDir": "<abs skill dir>", "today": "<YYYY-MM-DD>"}`,
+   with the optional `"resume"`, `"only"` and `"redo"` (see Resume).
+
+   **Claude Code (Workflow tool): call it** with `scriptPath` `<skill dir>/workflow/build-course.js`
+   and the args above. Tell the user in one line that the build runs in the background, and that
+   they can watch it with `/workflows`.
+
+   **pi (no Workflow tool): run the runner in the background.** The runner executes the same
+   `workflow/build-course.js` and gives each agent its own `pi --print` child process:
+   ```bash
+   cd <project root>
+   mkdir -p <course dir>/reports
+   nohup node <skill dir>/workflow/run-workflow.mjs \
+     --script <skill dir>/workflow/build-course.js \
+     --args '<args JSON on one line>' \
+     > <course dir>/reports/workflow.out 2>&1 < /dev/null &
+   disown
+   ```
+   Tell the user in one line that the build runs in the background, where the log is
+   (`<course dir>/reports/workflow.log`), and that the run takes a long time (many agents).
+   Then poll, do not block: run `tail -n 30 <course dir>/reports/workflow.log` every few minutes
+   with bash, and when the log has a line starting `done:` read
+   `<course dir>/reports/workflow-result.json`. That file holds exactly what the Workflow tool
+   would have returned, so step 4 applies unchanged. While you wait, `kill -0 $(cat <course dir>/reports/workflow.pid)`
+   tells you the run is still alive. If it died without a `done:` line, read the end of
+   `reports/workflow.out` and `reports/workflow/stderr.log`.
+
+   Runner facts: `--concurrency` (default 3, `CB_CONCURRENCY`) agents at once, `--timeout`
+   (default 2700 s) per agent, `CB_MAX_AGENTS` (default 400) as a cost guard. Every agent's
+   prompt, stdout and JSON answer is kept in `<course dir>/reports/workflow/`, and
+   `reports/workflow-runs.json` lists every run with its duration. Agents run on the model of the
+   pi session that starts the runner (`PI_PROVIDER`/`PI_MODEL`), so they follow your current
+   `/model`; pass `--model` or set `COURSE_BUILDER_MODEL` to pin another one, and the start line
+   of `workflow.log` names the model and where it came from. Source discovery and video search
+   need a web search tool: with the `pi-exa` package the runner enables `web_search_exa` and
+   `web_fetch_exa` and rewrites those names in the agent prompts. A `--dry-run` prints every
+   agent call without spending anything.
 
 4. **When the workflow returns,** act on `status`:
    - `ok`: all of these are true: the final `verify --all` passed, `cb.py render` printed
@@ -100,9 +152,11 @@ Rebuild it with `"resume": "modules"`.
 ## Resume
 
 Add `"resume": "<stage>"` to the args to skip earlier stages and reuse their files.
-The stages are `inventory`, `syllabus`, `modules`, `review` and `ship`. To re-run a
-crashed workflow with cached agent results, use `resumeFromRunId` with the same
-`scriptPath` and args.
+The stages are `inventory`, `syllabus`, `modules`, `review` and `ship`. In pi, re-run the
+runner with the same args plus the new `"resume"`. In Claude Code, to re-run a crashed
+workflow with cached agent results, use `resumeFromRunId` with the same `scriptPath` and args.
+The runner keeps no agent cache: a resumed pi run starts its agents fresh, but it reuses every
+file the earlier stages wrote, which is what saves the time.
 
 With `"resume": "modules"`, a module that already has a `module.json` and passes
 `cb.py verify --module` is skipped (a cheap check runs first). Two more args control this:
@@ -135,6 +189,7 @@ stage runs), `verify --all`, render and the browser test.
 | path | role |
 |---|---|
 | `workflow/build-course.js` | the team workflow (sources → inventory → syllabus → modules → course review → ship) |
+| `workflow/run-workflow.mjs` | pi runner: provides `agent`, `parallel`, `pipeline`, `phase`, `log` and `args` to `workflow/build-course.js` and runs every agent as a `pi --print` child process. Not used in Claude Code |
 | `scripts/cb.py` | the one CLI the agents use: `init`, `runtime`, `fetch`, `index`, `verify`, `try`, `learner-view`, `quiz-check`, `render`, `smoke`, `status`, `catalog`, `open`. `learner-view` prints what the page shows (lessons, instructions, starter code, the Data tab, quiz questions without answers). `quiz-check <dir> <module> --choices '{"m02-q1": 1}'` compares learner answers with the key (exit 0 ok, 1 mismatch, 2 bad input) |
 | `scripts/coursehash.py` | `inputs_hash(course_dir)`: a hash of `inventory.json`, `syllabus.json` and every `module.json`. `verify.py` stores it in the report. `render.py` compares it, to find a stale report |
 | `scripts/harness.py` | runs one exercise. The same code runs in CPython (verify) and in Pyodide (the page). The learner time limit starts after `setup_code` and `carry_code` finish |
